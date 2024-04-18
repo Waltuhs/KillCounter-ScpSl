@@ -9,11 +9,8 @@ namespace KillCounter
     {
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
-
         public override string Prefix => "KillCounter";
-
         public override Version Version => new Version(1, 0, 0);
-
         static Dictionary<Player, int> killsss = new Dictionary<Player, int>();
 
         public override void OnEnabled()
