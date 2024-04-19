@@ -7,6 +7,7 @@ namespace KillCounter
 {
     public class Plugin : Plugin<config>
     {
+        public static KillCounter Instance { get; private set; } = null;
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
@@ -17,6 +18,7 @@ namespace KillCounter
         {
           
             base.OnEnabled();
+            Instance = this;
             Exiled.Events.Handlers.Player.Died += OnPlayerDeath;
         }
 
@@ -24,8 +26,8 @@ namespace KillCounter
         public override void OnDisabled()
         {
             base.OnDisabled();
+            Instance = null;
             Exiled.Events.Handlers.Player.Died -= OnPlayerDeath;
-
         }
         static void OnPlayerDeath(DiedEventArgs ev)
         {
