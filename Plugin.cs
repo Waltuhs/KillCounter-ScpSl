@@ -5,18 +5,17 @@ using System.Collections.Generic;
 
 namespace KillCounter
 {
-    public class Plugin : Plugin<config>
+    public class Plugin : Plugin<Config>
     {
         public static KillCounter Instance { get; private set; } = null;
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
-        public override Version Version => new Version(1, 0, 0);
+        public override Version Version => new Version(1, 1, 0);
         static Dictionary<Player, int> killsss = new Dictionary<Player, int>();
 
         public override void OnEnabled()
         {
-          
             base.OnEnabled();
             Instance = this;
             Exiled.Events.Handlers.Player.Died += OnPlayerDeath;
@@ -29,25 +28,26 @@ namespace KillCounter
             Instance = null;
             Exiled.Events.Handlers.Player.Died -= OnPlayerDeath;
         }
-        static void OnPlayerDeath(DiedEventArgs ev)
+
+        
+        public void OnPlayerDeath(DiedEventArgs ev)
         {
             if (ev.Attacker != null)
             {
-
                 if (!killsss.ContainsKey(ev.Attacker))
                 {
-                    killsss[ev.Attacker] = 0;
-                    killsss[ev.Attacker]++;
-                    ev.Attacker.ShowHint($"\n \n \n \n \n \n \n you have {killsss[ev.Attacker]} kill!", 3);
+                    killsss[ev.Attacker] = 1;
+                    string firstKillMessage = Config.firstkm.Replace("{kills}", "1");
+                    ev.Attacker.ShowHint(firstKillMessage, Config.kmTime);
                 }
                 else
                 {
                     killsss[ev.Attacker]++;
-                    ev.Attacker.ShowHint($"\n \n \n \n \n \n \n you have {killsss[ev.Attacker]} kills!", 3);
+                    string PlayKills = killsss[ev.Attacker].ToString();
+                    string killMessage = Config.km.Replace("{kills}", PlayKills);
+                    ev.Attacker.ShowHint(killMessage, Config.kmTime);
                 }
-                
             }
-            
         }
     }
 }
