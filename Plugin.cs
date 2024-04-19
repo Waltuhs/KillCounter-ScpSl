@@ -7,7 +7,7 @@ namespace KillCounter
 {
     public class Plugin : Plugin<Config>
     {
-        public static KillCounter Instance { get; private set; } = null;
+        public static Plugin Instance { get; private set; } = null;
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
