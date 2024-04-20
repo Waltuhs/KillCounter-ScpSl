@@ -1,9 +1,11 @@
 # KillCounter-ScpSl
-errrm what the heck
-every time u kill someone it like displays a hint to them the amount of kills they have :trollface:
-thats about it
-made this for a server i dev on for free never ended up getting used
+### this plugin uses a variety of different ways of tracking and displaying kills!  here are a few noteable features of this plugin
 
-# still in final development so there might be bugs!
-i havent found any but that dosent mean there isnt any!
-but either way ill prob add features if i feel like it too so yknow
+| |  |
+| --- | --- |
+| .kd | .kd is a client command that displays the senders kill to death ratio, kills and deaths! |
+| kill hint | when a player gets a kill it gets broadcasted to them and the amount of kills they have (fully customizable in config) |
+| Spectator hint | when spectating someone it displays their name and kills (fully customizable in config) |
+
+## currently breaks vsr!
+it does track players with dnt as of right now. but i am going to very soon fix said issue
