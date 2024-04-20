@@ -20,6 +20,13 @@ namespace KillCounter
 
         [Description("Kill message hint time (int)")]
         public int kmTime { get; set; } = 3;
+
+        [Description("Spectator kill count hint message")]
+        public string HintMessageSpec { get; set; } = "You are now spectating {Spectated} \n <color=#00FFFF>they have {kills} kills!</color>";
+
+        //unused in this version
+        [Description("is the spectator kill count hint enabled?")]
+        public bool SpecHintIsEnabled { get; set; } = true;
     }
 }
 
