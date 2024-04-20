@@ -4,6 +4,7 @@ using Exiled.Events.EventArgs.Player;
 using System.Collections.Generic;
 using MEC;
 using PlayerRoles;
+using LiteDB;
 
 
 namespace KillCounter
@@ -22,7 +23,7 @@ namespace KillCounter
         {
             base.OnEnabled();
             Instance = this;
-            Log.Warn("This version of KillCounter is UNTESTED please open any issues in the issues tab on github.");
+            Log.Warn("This version of KillCounter is a newer less tested release please report any and all buys to walter.jr. on discord or the issues tab on github.");
             Exiled.Events.Handlers.Player.Died += OnPlayerDeath;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpecedRole;
         }
@@ -40,23 +41,21 @@ namespace KillCounter
 
         public void OnPlayerDeath(DiedEventArgs ev)
         {
-            if (ev.Attacker != null)
+            if (ev.Attacker != null && ev.Player != null)
             {
                 if (!killsss.ContainsKey(ev.Attacker))
                 {
-                    killsss[ev.Attacker] = 1;
-                    string firstKillMessage = Config.firstkm.Replace("{kills}", "1");
-                    ev.Attacker.ShowHint(firstKillMessage, Config.kmTime);
+                    killsss[ev.Attacker] = 0;
                 }
-                else
-                {
-                    killsss[ev.Attacker]++;
-                    string PlayKills = killsss[ev.Attacker].ToString();
-                    string killMessage = Config.km.Replace("{kills}", PlayKills);
-                    ev.Attacker.ShowHint(killMessage, Config.kmTime);
-                }
+                killsss[ev.Attacker]++;
+                UpdateKillCount(ev.Attacker);
+                string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
+                ev.Attacker.ShowHint(killMessage, Config.kmTime);
             }
+
+            UpdateDeathCount(ev.Player);
         }
+
         public void OnChangingSpecedRole(ChangingSpectatedPlayerEventArgs ev)
         {
             if (ev.Player != null && ev.NewTarget != null)
@@ -87,7 +86,7 @@ namespace KillCounter
             {
                 if (player.Role != RoleTypeId.Spectator)
                 {
-                    yield break; 
+                    yield break;
                 }
                 if (player == null || newSpectatedPlayer == null)
                 {
@@ -104,5 +103,61 @@ namespace KillCounter
                 yield return Timing.WaitForSeconds(1.2f);
             }
         }
+
+        private void UpdateKillCount(Player player)
+        {
+            using (var db = new LiteDatabase("kill_counter.db"))
+            {
+                var collection = db.GetCollection<KillCount>("kill_counts");
+                var killCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
+
+                if (killCount != null)
+                {
+                    killCount.Kills++;
+                    collection.Update(killCount);
+                }
+                else
+                {
+                    killCount = new KillCount { PlayerId = player.UserId, Kills = 1 };
+                    collection.Insert(killCount);
+                }
+            }
+        }
+
+        private void UpdateDeathCount(Player player)
+        {
+            using (var db = new LiteDatabase("kill_counter.db"))
+            {
+                var collection = db.GetCollection<DeathCount>("death_counts");
+                var deathCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
+
+                if (deathCount != null)
+                {
+                    deathCount.Deaths++;
+                    collection.Update(deathCount);
+                }
+                else
+                {
+                    deathCount = new DeathCount { PlayerId = player.UserId, Deaths = 1 };
+                    collection.Insert(deathCount);
+                }
+            }
+        }
+
+
+        public class KillCount
+        {
+            public int Id { get; set; }
+            public string PlayerId { get; set; } 
+            public int Kills { get; set; }
+        }
+
+        public class DeathCount
+        {
+            public int Id { get; set; }
+            public string PlayerId { get; set; } 
+            public int Deaths { get; set; }
+        }
+
     }
 }
