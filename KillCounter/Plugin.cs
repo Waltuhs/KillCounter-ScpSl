@@ -41,16 +41,21 @@ namespace KillCounter
 
         public void OnPlayerDeath(DiedEventArgs ev)
         {
-            if (ev.Attacker != null && ev.Player != null)
+
+            if(!ev.Attacker.DoNotTrack)
             {
-                if (!killsss.ContainsKey(ev.Attacker))
+
+                if (ev.Attacker != null && ev.Player != null)
                 {
-                    killsss[ev.Attacker] = 0;
+                    if (!killsss.ContainsKey(ev.Attacker))
+                    {
+                        killsss[ev.Attacker] = 0;
+                    }
+                    killsss[ev.Attacker]++;
+                    UpdateKillCount(ev.Attacker);
+                    string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
+                    ev.Attacker.ShowHint(killMessage, Config.kmTime);
                 }
-                killsss[ev.Attacker]++;
-                UpdateKillCount(ev.Attacker);
-                string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
-                ev.Attacker.ShowHint(killMessage, Config.kmTime);
             }
 
             UpdateDeathCount(ev.Player);
@@ -60,23 +65,33 @@ namespace KillCounter
         {
             if (ev.Player != null && ev.NewTarget != null)
             {
-                if (!Plugin.killsss.ContainsKey(ev.NewTarget))
+
+                if (!ev.NewTarget.DoNotTrack)
                 {
-                    Plugin.killsss[ev.NewTarget] = 0;
-                    string newSpectatedPlayerName = ev.NewTarget.Nickname;
-                    string playerName = ev.Player.Nickname;
-                    Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName));
+                    if (!Plugin.killsss.ContainsKey(ev.NewTarget))
+                    {
+                     Plugin.killsss[ev.NewTarget] = 0;
+                     string newSpectatedPlayerName = ev.NewTarget.Nickname;
+                     string playerName = ev.Player.Nickname;
+                     Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName));
+                    }
+                    else
+                    {
+                     string newSpectatedPlayerName = ev.NewTarget.Nickname;
+                     string playerName = ev.Player.Nickname;
+                     Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName));
+                            { }
+                    }
                 }
                 else
                 {
-                    string newSpectatedPlayerName = ev.NewTarget.Nickname;
-                    string playerName = ev.Player.Nickname;
-                    Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName));
-                    { }
+                 string playerName = ev.Player.Nickname;
+                 Timing.RunCoroutine(DNTSpectatorHintCoroutine(playerName));
                 }
-
+                
             }
         }
+
         private IEnumerator<float> SpectatorHintCoroutine(string playerName, string newSpectatedPlayerName)
         {
             Player player = Player.Get(playerName);
@@ -98,7 +113,7 @@ namespace KillCounter
                 {
                     string kills = killsss[newSpectatedPlayer].ToString();
                     string SpectatorMessage = Config.HintMessageSpec.Replace("{kills}", kills).Replace("{Spectated}", newSpectatedPlayer.Nickname);
-                    player.ShowHint(SpectatorMessage, 10);
+                    player.ShowHint(SpectatorMessage, 1.5f);
                 }
                 yield return Timing.WaitForSeconds(1.2f);
             }
@@ -106,41 +121,67 @@ namespace KillCounter
 
         private void UpdateKillCount(Player player)
         {
-            using (var db = new LiteDatabase("kill_counter.db"))
+            if (!player.DoNotTrack)
             {
-                var collection = db.GetCollection<KillCount>("kill_counts");
-                var killCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
+                using (var db = new LiteDatabase("kill_counter.db"))
+                {
+                    var collection = db.GetCollection<KillCount>("kill_counts");
+                    var killCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
 
-                if (killCount != null)
-                {
-                    killCount.Kills++;
-                    collection.Update(killCount);
-                }
-                else
-                {
-                    killCount = new KillCount { PlayerId = player.UserId, Kills = 1 };
-                    collection.Insert(killCount);
+                    if (killCount != null)
+                    {
+                        killCount.Kills++;
+                        collection.Update(killCount);
+                    }
+                    else
+                    {
+                        killCount = new KillCount { PlayerId = player.UserId, Kills = 1 };
+                        collection.Insert(killCount);
+                    }
                 }
             }
         }
 
         private void UpdateDeathCount(Player player)
         {
-            using (var db = new LiteDatabase("kill_counter.db"))
+            if(!player.DoNotTrack)
             {
-                var collection = db.GetCollection<DeathCount>("death_counts");
-                var deathCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
+                using (var db = new LiteDatabase("kill_counter.db"))
+                {
+                    var collection = db.GetCollection<DeathCount>("death_counts");
+                    var deathCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
 
-                if (deathCount != null)
-                {
-                    deathCount.Deaths++;
-                    collection.Update(deathCount);
+                    if (deathCount != null)
+                    {
+                        deathCount.Deaths++;
+                        collection.Update(deathCount);
+                    }
+                    else
+                    {
+                        deathCount = new DeathCount { PlayerId = player.UserId, Deaths = 1 };
+                        collection.Insert(deathCount);
+                    }
                 }
-                else
+            }
+        }
+
+        private IEnumerator<float> DNTSpectatorHintCoroutine(string playerName)
+        {
+            Player player = Player.Get(playerName);
+
+            while (true)
+            {
+                if (player.Role != RoleTypeId.Spectator)
                 {
-                    deathCount = new DeathCount { PlayerId = player.UserId, Deaths = 1 };
-                    collection.Insert(deathCount);
+                    yield break;
                 }
+                if (player == null)
+                {
+                    Log.Error($"Player '{playerName}' detected null");
+                    yield break;
+                }
+                player.ShowHint("\n \n \n \n \n \n the player your spectating has DNT active.", 1.5f);
+                yield return Timing.WaitForSeconds(1.2f);
             }
         }
 
