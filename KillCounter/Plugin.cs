@@ -80,7 +80,6 @@ namespace KillCounter
                      string newSpectatedPlayerName = ev.NewTarget.Nickname;
                      string playerName = ev.Player.Nickname;
                      Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName));
-                            { }
                     }
                 }
                 else
