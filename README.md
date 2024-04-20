@@ -7,6 +7,6 @@
 | kill hint | when a player gets a kill it gets broadcasted to them and the amount of kills they have (fully customizable in config) |
 | Spectator hint | when spectating someone it displays their name and kills (fully customizable in config) |
 
-###id love suggestions for this plugin please slide a dm if you have one!
+### id love suggestions for this plugin please slide a dm if you have one!
 ### or just open a issue with the tag
 discord @walter.jr.
