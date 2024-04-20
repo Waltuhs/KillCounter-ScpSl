@@ -22,7 +22,7 @@ namespace KillCounter
         public int kmTime { get; set; } = 3;
 
         [Description("Spectator kill count hint message")]
-        public string HintMessageSpec { get; set; } = "You are now spectating {Spectated} \n <color=#00FFFF>they have {kills} kills!</color>";
+        public string HintMessageSpec { get; set; } = "You are now spectating {Spectated} <color=#00FFFF>they have {kills} kills!</color>";
 
         [Description("is the spectator kill count hint enabled?")]
         public bool SpecHintIsEnabled { get; set; } = true;
