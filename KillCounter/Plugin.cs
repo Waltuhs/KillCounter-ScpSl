@@ -63,7 +63,7 @@ namespace KillCounter
 
         public void OnChangingSpecedRole(ChangingSpectatedPlayerEventArgs ev)
         {
-            if (ev.Player != null && ev.NewTarget != null)
+            if (ev.Player != null && ev.NewTarget != null && Config.SpecHintIsEnabled == true)
             {
 
                 if (!ev.NewTarget.DoNotTrack)
