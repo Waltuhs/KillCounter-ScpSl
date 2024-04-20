@@ -7,5 +7,5 @@
 | kill hint | when a player gets a kill it gets broadcasted to them and the amount of kills they have (fully customizable in config) |
 | Spectator hint | when spectating someone it displays their name and kills (fully customizable in config) |
 
-## currently breaks vsr!
-it does track players with dnt as of right now. but i am going to very soon fix said issue
+id love suggestions for this plugin please slide a dm if you have one!
+discord @walter.jr.
