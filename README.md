@@ -9,4 +9,5 @@
 
 ### id love suggestions for this plugin please slide a dm if you have one!
 ### or just open a issue with the tag
+(ps this is an exiled plugin)
 discord @walter.jr.
