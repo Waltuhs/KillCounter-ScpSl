@@ -42,23 +42,26 @@ namespace KillCounter
         public void OnPlayerDeath(DiedEventArgs ev)
         {
 
-            if(!ev.Attacker.DoNotTrack)
+            if (ev.Attacker != null && ev.Player != null)
             {
 
-                if (ev.Attacker != null && ev.Player != null)
+                if (!ev.Attacker.DoNotTrack)
                 {
-                    if (!killsss.ContainsKey(ev.Attacker))
-                    {
-                        killsss[ev.Attacker] = 0;
-                    }
-                    killsss[ev.Attacker]++;
-                    UpdateKillCount(ev.Attacker);
-                    string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
-                    ev.Attacker.ShowHint(killMessage, Config.kmTime);
-                }
-            }
 
-            UpdateDeathCount(ev.Player);
+                    if (ev.Attacker != null && ev.Player != null)
+                    {
+                        if (!killsss.ContainsKey(ev.Attacker))
+                        {
+                            killsss[ev.Attacker] = 0;
+                        }
+                        killsss[ev.Attacker]++;
+                        UpdateKillCount(ev.Attacker);
+                        string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
+                        ev.Attacker.ShowHint(killMessage, Config.kmTime);
+                    }
+                }
+                UpdateDeathCount(ev.Player);
+            }
         }
 
         public void OnChangingSpecedRole(ChangingSpectatedPlayerEventArgs ev)
