@@ -23,7 +23,7 @@ namespace KillCounter
         {
             base.OnEnabled();
             Instance = this;
-            Log.Warn("This version of KillCounter is a newer less tested release please report any and all buys to walter.jr. on discord or the issues tab on github.");
+            Log.Warn("This version of KillCounter is a newer less tested release please report any and all bugs to walter.jr. on discord or the issues tab on github.");
             Exiled.Events.Handlers.Player.Died += OnPlayerDeath;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpecedRole;
         }
