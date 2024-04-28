@@ -42,21 +42,33 @@ namespace KillCounter
         {
             if (ev.Attacker != null && ev.Player != null)
             {
-                if (!ev.Attacker.DoNotTrack)
+                if (!ev.Player.DoNotTrack && ev.Attacker.DoNotTrack)
                 {
-                    if (!killsss.ContainsKey(ev.Attacker))
+
+                    if (!ev.Attacker.DoNotTrack)
                     {
-                        killsss[ev.Attacker] = 0;
-                        killsss[ev.Attacker]++;
-                        string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
-                        ev.Attacker.ShowHint(firstkillMessage, 5);
+                        if (!ev.Player.DoNotTrack)
+                        {
+                            if (!killsss.ContainsKey(ev.Attacker))
+                            {
+                                killsss[ev.Attacker] = 0;
+                                killsss[ev.Attacker]++;
+                                string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
+                                ev.Attacker.ShowHint(firstkillMessage, 5);
+                                UpdateDeathCount(ev.Player);
+                                UpdateKillCount(ev.Attacker);
+                            }
+                            else
+                            {
+                                killsss[ev.Attacker]++;
+                                string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
+                                ev.Attacker.ShowHint(killMessage, Config.kmTime);
+                                UpdateDeathCount(ev.Player);
+                                UpdateKillCount(ev.Attacker);
+                            }
+                        }
                     }
-                    else
-                    {
-                        killsss[ev.Attacker]++;
-                        string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
-                        ev.Attacker.ShowHint(killMessage, Config.kmTime);
-                    }
+                    UpdateDeathCount(ev.Player);
                 }
             }
         }
