@@ -38,29 +38,26 @@ namespace KillCounter
             Timing.KillCoroutines(hintCoroutine);
         }
 
-
         public void OnPlayerDeath(DiedEventArgs ev)
         {
-
             if (ev.Attacker != null && ev.Player != null)
             {
-
                 if (!ev.Attacker.DoNotTrack)
                 {
-
-                    if (ev.Attacker != null && ev.Player != null)
+                    if (!killsss.ContainsKey(ev.Attacker))
                     {
-                        if (!killsss.ContainsKey(ev.Attacker))
-                        {
-                            killsss[ev.Attacker] = 0;
-                        }
+                        killsss[ev.Attacker] = 0;
                         killsss[ev.Attacker]++;
-                        UpdateKillCount(ev.Attacker);
+                        string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
+                        ev.Attacker.ShowHint(firstkillMessage, 5);
+                    }
+                    else
+                    {
+                        killsss[ev.Attacker]++;
                         string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
                         ev.Attacker.ShowHint(killMessage, Config.kmTime);
                     }
                 }
-                UpdateDeathCount(ev.Player);
             }
         }
 
