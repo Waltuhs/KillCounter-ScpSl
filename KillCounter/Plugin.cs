@@ -44,7 +44,6 @@ namespace KillCounter
             {
                 if (!ev.Player.DoNotTrack && ev.Attacker.DoNotTrack)
                 {
-
                     if (!ev.Attacker.DoNotTrack)
                     {
                         if (!ev.Player.DoNotTrack)
@@ -67,8 +66,29 @@ namespace KillCounter
                                 UpdateKillCount(ev.Attacker);
                             }
                         }
+                        else
+                        {
+                            if (!killsss.ContainsKey(ev.Attacker))
+                            {
+                                killsss[ev.Attacker] = 0;
+                                killsss[ev.Attacker]++;
+                                string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
+                                ev.Attacker.ShowHint(firstkillMessage, 5);
+                                UpdateKillCount(ev.Attacker);
+                            }
+                            else
+                            {
+                                killsss[ev.Attacker]++;
+                                string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
+                                ev.Attacker.ShowHint(killMessage, Config.kmTime);
+                                UpdateKillCount(ev.Attacker);
+                            }
+                        }
                     }
-                    UpdateDeathCount(ev.Player);
+                    else
+                    {
+                        UpdateDeathCount(ev.Player);
+                    }
                 }
             }
         }
