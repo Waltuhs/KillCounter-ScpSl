@@ -15,8 +15,10 @@ namespace KillCounter
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
-        public override Version Version => new Version(1, 2, 0);
+        public override Version Version => new Version(1, 2, 3);
         public static Dictionary<Player, int> killsss = new Dictionary<Player, int>();
+        private Dictionary<Player, CoroutineHandle> spectatorCoroutines = new Dictionary<Player, CoroutineHandle>();
+
         private CoroutineHandle hintCoroutine;
 
         public override void OnEnabled()
@@ -38,92 +40,100 @@ namespace KillCounter
             Timing.KillCoroutines(hintCoroutine);
         }
 
+
         public void OnPlayerDeath(DiedEventArgs ev)
         {
             if (ev.Attacker != null && ev.Player != null)
             {
-                if (!ev.Player.DoNotTrack && ev.Attacker.DoNotTrack)
+                if (!ev.Attacker.DoNotTrack)
                 {
-                    if (!ev.Attacker.DoNotTrack)
+                    if (!ev.Player.DoNotTrack)
                     {
-                        if (!ev.Player.DoNotTrack)
+                        if (!killsss.ContainsKey(ev.Attacker))
                         {
-                            if (!killsss.ContainsKey(ev.Attacker))
-                            {
-                                killsss[ev.Attacker] = 0;
-                                killsss[ev.Attacker]++;
-                                string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
-                                ev.Attacker.ShowHint(firstkillMessage, 5);
-                                UpdateDeathCount(ev.Player);
-                                UpdateKillCount(ev.Attacker);
-                            }
-                            else
-                            {
-                                killsss[ev.Attacker]++;
-                                string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
-                                ev.Attacker.ShowHint(killMessage, Config.kmTime);
-                                UpdateDeathCount(ev.Player);
-                                UpdateKillCount(ev.Attacker);
-                            }
+                            killsss[ev.Attacker] = 0;
+                            killsss[ev.Attacker]++;
+                            string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
+                            ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
+                            UpdateDeathCount(ev.Player);
+                            UpdateKillCount(ev.Attacker);
                         }
                         else
                         {
-                            if (!killsss.ContainsKey(ev.Attacker))
-                            {
-                                killsss[ev.Attacker] = 0;
-                                killsss[ev.Attacker]++;
-                                string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
-                                ev.Attacker.ShowHint(firstkillMessage, 5);
-                                UpdateKillCount(ev.Attacker);
-                            }
-                            else
-                            {
-                                killsss[ev.Attacker]++;
-                                string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
-                                ev.Attacker.ShowHint(killMessage, Config.kmTime);
-                                UpdateKillCount(ev.Attacker);
-                            }
+                            killsss[ev.Attacker]++;
+                            string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
+                            ev.Attacker.ShowHint(killMessage, Config.kmTime);
+                            UpdateDeathCount(ev.Player);
+                            UpdateKillCount(ev.Attacker);
                         }
                     }
                     else
                     {
-                        UpdateDeathCount(ev.Player);
+                        if (!killsss.ContainsKey(ev.Attacker))
+                        {
+                            killsss[ev.Attacker] = 0;
+                            killsss[ev.Attacker]++;
+                            string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
+                            ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
+                            UpdateKillCount(ev.Attacker);
+                        }
+                        else
+                        {
+                            killsss[ev.Attacker]++;
+                            string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
+                            ev.Attacker.ShowHint(killMessage, Config.kmTime);
+                            UpdateKillCount(ev.Attacker);
+                        }
                     }
+                }
+                else
+                {
+                    UpdateDeathCount(ev.Player);
                 }
             }
         }
+
+
+
 
         public void OnChangingSpecedRole(ChangingSpectatedPlayerEventArgs ev)
         {
             if (ev.Player != null && ev.NewTarget != null && Config.SpecHintIsEnabled == true)
             {
+                if (spectatorCoroutines.ContainsKey(ev.Player) && Timing.IsRunning(spectatorCoroutines[ev.Player]))
+                {
+                    Timing.KillCoroutines(spectatorCoroutines[ev.Player]);
+                    spectatorCoroutines.Remove(ev.Player);
+                }
 
                 if (!ev.NewTarget.DoNotTrack)
                 {
                     if (!Plugin.killsss.ContainsKey(ev.NewTarget))
                     {
-                     Plugin.killsss[ev.NewTarget] = 0;
-                     string newSpectatedPlayerName = ev.NewTarget.Nickname;
-                     string playerName = ev.Player.Nickname;
-                     Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName));
+                        Plugin.killsss[ev.NewTarget] = 0;
+                        string newSpectatedPlayerName = ev.NewTarget.Nickname;
+                        string newSpecedUserId = ev.NewTarget.UserId;
+                        string playerName = ev.Player.Nickname;
+                        spectatorCoroutines[ev.Player] = Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName, newSpecedUserId));
                     }
                     else
                     {
-                     string newSpectatedPlayerName = ev.NewTarget.Nickname;
-                     string playerName = ev.Player.Nickname;
-                     Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName));
+                        string newSpecedUserId = ev.NewTarget.UserId;
+                        string newSpectatedPlayerName = ev.NewTarget.Nickname;
+                        string playerName = ev.Player.Nickname;
+                        spectatorCoroutines[ev.Player] = Timing.RunCoroutine(SpectatorHintCoroutine(playerName, newSpectatedPlayerName, newSpecedUserId));
                     }
                 }
                 else
                 {
-                 string playerName = ev.Player.Nickname;
-                 Timing.RunCoroutine(DNTSpectatorHintCoroutine(playerName));
+                    string playerName = ev.Player.Nickname;
+                    spectatorCoroutines[ev.Player] = Timing.RunCoroutine(DNTSpectatorHintCoroutine(playerName));
                 }
-                
             }
         }
 
-        private IEnumerator<float> SpectatorHintCoroutine(string playerName, string newSpectatedPlayerName)
+
+        private IEnumerator<float> SpectatorHintCoroutine(string playerName, string newSpectatedPlayerName, string newSpecedUserId)
         {
             Player player = Player.Get(playerName);
             Player newSpectatedPlayer = Player.Get(newSpectatedPlayerName);
@@ -134,9 +144,14 @@ namespace KillCounter
                 {
                     yield break;
                 }
-                if (player == null || newSpectatedPlayer == null)
+                if (player == null)
                 {
-                    Log.Error($"Player '{playerName}' or new spectated player '{newSpectatedPlayerName}' detected null");
+                    yield break;
+                }
+
+                if (newSpecedUserId == null)
+                {
+                    Log.Info("adawsex");
                     yield break;
                 }
 
@@ -147,6 +162,7 @@ namespace KillCounter
                     player.ShowHint(SpectatorMessage, 1.5f);
                 }
                 yield return Timing.WaitForSeconds(1.2f);
+                Timing.KillCoroutines(hintCoroutine);
             }
         }
 
@@ -208,7 +224,6 @@ namespace KillCounter
                 }
                 if (player == null)
                 {
-                    Log.Error($"Player '{playerName}' detected null");
                     yield break;
                 }
                 player.ShowHint("\n \n \n \n \n \n the player your spectating has DNT active.", 1.5f);
@@ -230,6 +245,5 @@ namespace KillCounter
             public string PlayerId { get; set; } 
             public int Deaths { get; set; }
         }
-
     }
 }
