@@ -1,5 +1,5 @@
 # KillCounter-ScpSl
-![Downloads](https://img.shields.io/github/downloads/Waltuhs/KillCounter-ScpSl)
+![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/Waltuhs/KillCounter-ScpSl/latest/total)
 ### this plugin uses a variety of different ways of tracking and displaying kills!  here are a few noteable features of this plugin
 
 | |  |
