@@ -11,6 +11,6 @@
 | Spectator hint | when spectating someone it displays their name and kills (fully customizable in config) |
 
 ### id love suggestions for this plugin please slide a dm if you have one!
-### or just open a issue with the suggestions tag
+### or just open a issue with the suggestion tag
 (ps this is an exiled plugin)
 discord @walter.jr.
