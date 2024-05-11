@@ -9,7 +9,7 @@ using LiteDB;
 
 namespace KillCounter
 {
-    public class Plugin : Plugin<Config>
+    public class Plugin : Plugin<Config, Translations>
     {
         public static Plugin Instance { get; private set; } = null;
         public override string Author => "sexy waltuh";
@@ -233,7 +233,7 @@ namespace KillCounter
                 {
                     yield break;
                 }
-                player.ShowHint("\n \n \n \n \n \n the player your spectating has DNT active.", 1.5f);
+                player.ShowHint(Translation.DNTspechint.Replace("%n%", "\n"), 1.5f);
                 yield return Timing.WaitForSeconds(1.2f);
             }
         }

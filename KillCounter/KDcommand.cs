@@ -35,7 +35,12 @@ namespace KillCounter
 
                     // calc + print
                     double ratio = deaths != 0 ? (double)kills / deaths : kills;
-                    response = $"\nPlayer: {player.Nickname}\nKills: {kills}\nDeaths: {deaths}\nKill/Death Ratio: {ratio:F2}";
+                    response = Plugin.Instance.Translation.KdResponse
+                        .Replace("%kills%", kills.ToString())
+                        .Replace("%deaths%", deaths.ToString())
+                        .Replace("%player%", player.Nickname)
+                        .Replace("%kd%", ratio.ToString("F2"))
+                        .Replace("%n%", "\n"); 
                 }
             }
             else
