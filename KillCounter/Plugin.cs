@@ -93,8 +93,15 @@ namespace KillCounter
             }
         }
 
-
-
+        private void CleanUpDictionaries(RoundEndedEventArgs ev)
+        {
+            killsss.Clear();
+            foreach (var coroutineHandle in spectatorCoroutines.Values)
+            {
+                Timing.KillCoroutines(coroutineHandle);
+            }
+            spectatorCoroutines.Clear();
+        }
 
         public void OnChangingSpecedRole(ChangingSpectatedPlayerEventArgs ev)
         {
