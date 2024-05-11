@@ -15,7 +15,7 @@ namespace KillCounter
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
-        public override Version Version => new Version(1, 2, 4);
+        public override Version Version => new Version(1, 2, 5);
         public static Dictionary<Player, int> killsss = new Dictionary<Player, int>();
         private Dictionary<Player, CoroutineHandle> spectatorCoroutines = new Dictionary<Player, CoroutineHandle>();
 
