@@ -55,7 +55,7 @@ namespace KillCounter
                             string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
                             UpdateDeathCount(ev.Player);
-                            UpdateKillCount(ev.Attacker, ev.Player);
+                            UpdateKillCount(ev.Attacker, ev.TargetOldRole);
                         }
                         else
                         {
@@ -63,7 +63,7 @@ namespace KillCounter
                             string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(killMessage, Config.kmTime);
                             UpdateDeathCount(ev.Player);
-                            UpdateKillCount(ev.Attacker, ev.Player);
+                            UpdateKillCount(ev.Attacker, ev.TargetOldRole);
                         }
                     }
                     else
@@ -74,14 +74,14 @@ namespace KillCounter
                             killsss[ev.Attacker]++;
                             string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
-                            UpdateKillCount(ev.Attacker, ev.Player);
+                            UpdateKillCount(ev.Attacker, ev.TargetOldRole);
                         }
                         else
                         {
                             killsss[ev.Attacker]++;
                             string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(killMessage, Config.kmTime);
-                            UpdateKillCount(ev.Attacker, ev.Player);
+                            UpdateKillCount(ev.Attacker, ev.TargetOldRole);
                         }
                     }
                 }
@@ -171,7 +171,7 @@ namespace KillCounter
             }
         }
 
-        private void UpdateKillCount(Player player, Player DeadPlayer)
+        private void UpdateKillCount(Player player, RoleTypeId DeadPlayerOldRole)
         {
             if (!player.DoNotTrack)
             {
@@ -189,7 +189,7 @@ namespace KillCounter
                             killCount.ScpKills++;
                             collection.Update(killCount);
                         }
-                        if(DeadPlayer.Role.Team == Team.SCPs)
+                        if(!DeadPlayerOldRole.IsHuman())
                         {
                             killCount.KilledScps++;
                             collection.Update(killCount);
