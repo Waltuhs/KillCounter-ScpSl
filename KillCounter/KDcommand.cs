@@ -29,6 +29,14 @@ namespace KillCounter
                     var killCount = killCollection.FindOne(Query.EQ("PlayerId", player.UserId));
                     int kills = killCount != null ? killCount.Kills : 0;
 
+                    //get scp kills
+                    var scpkillcount = killCollection.FindOne(Query.EQ("PlayerId", player.UserId));
+                    int scpkills = killCount != null ? killCount.ScpKills : 0;
+
+                    //get Killed scps
+                    var Killedscpscount = killCollection.FindOne(Query.EQ("PlayerId", player.UserId));
+                    int killedscps = killCount != null ? killCount.KilledScps : 0;
+
                     // get deaths
                     var deathCount = deathCollection.FindOne(Query.EQ("PlayerId", player.UserId));
                     int deaths = deathCount != null ? deathCount.Deaths : 0;
@@ -36,7 +44,9 @@ namespace KillCounter
                     // calc + print
                     double ratio = deaths != 0 ? (double)kills / deaths : kills;
                     response = Plugin.Instance.Translation.KdResponse
-                        .Replace("%kills%", kills.ToString())
+                        .Replace("%TotalKills%", kills.ToString())
+                        .Replace("%scpkills%", scpkills.ToString())
+                        .Replace("%killedscps%", killedscps.ToString())
                         .Replace("%deaths%", deaths.ToString())
                         .Replace("%player%", player.Nickname)
                         .Replace("%kd%", ratio.ToString("F2"))

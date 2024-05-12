@@ -15,10 +15,9 @@ namespace KillCounter
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
-        public override Version Version => new Version(1, 2, 5);
+        public override Version Version => new Version(1, 2, 6);
         public static Dictionary<Player, int> killsss = new Dictionary<Player, int>();
         private Dictionary<Player, CoroutineHandle> spectatorCoroutines = new Dictionary<Player, CoroutineHandle>();
-
         private CoroutineHandle hintCoroutine;
 
         public override void OnEnabled()
@@ -56,7 +55,7 @@ namespace KillCounter
                             string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
                             UpdateDeathCount(ev.Player);
-                            UpdateKillCount(ev.Attacker);
+                            UpdateKillCount(ev.Attacker, ev.Player);
                         }
                         else
                         {
@@ -64,7 +63,7 @@ namespace KillCounter
                             string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(killMessage, Config.kmTime);
                             UpdateDeathCount(ev.Player);
-                            UpdateKillCount(ev.Attacker);
+                            UpdateKillCount(ev.Attacker, ev.Player);
                         }
                     }
                     else
@@ -75,14 +74,14 @@ namespace KillCounter
                             killsss[ev.Attacker]++;
                             string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
-                            UpdateKillCount(ev.Attacker);
+                            UpdateKillCount(ev.Attacker, ev.Player);
                         }
                         else
                         {
                             killsss[ev.Attacker]++;
                             string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(killMessage, Config.kmTime);
-                            UpdateKillCount(ev.Attacker);
+                            UpdateKillCount(ev.Attacker, ev.Player);
                         }
                     }
                 }
@@ -158,7 +157,6 @@ namespace KillCounter
 
                 if (newSpecedUserId == null)
                 {
-                    Log.Info("adawsex");
                     yield break;
                 }
 
@@ -173,7 +171,7 @@ namespace KillCounter
             }
         }
 
-        private void UpdateKillCount(Player player)
+        private void UpdateKillCount(Player player, Player DeadPlayer)
         {
             if (!player.DoNotTrack)
             {
@@ -186,6 +184,16 @@ namespace KillCounter
                     {
                         killCount.Kills++;
                         collection.Update(killCount);
+                        if(player.Role.Team == Team.SCPs)
+                        {
+                            killCount.ScpKills++;
+                            collection.Update(killCount);
+                        }
+                        if(DeadPlayer.Role.Team == Team.SCPs)
+                        {
+                            killCount.KilledScps++;
+                            collection.Update(killCount);
+                        }
                     }
                     else
                     {
@@ -244,6 +252,8 @@ namespace KillCounter
             public int Id { get; set; }
             public string PlayerId { get; set; } 
             public int Kills { get; set; }
+            public int ScpKills { get; set; }
+            public int KilledScps { get; set; }
         }
 
         public class DeathCount
