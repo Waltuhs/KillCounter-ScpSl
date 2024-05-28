@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using MEC;
 using PlayerRoles;
 using LiteDB;
+using Exiled.Events.EventArgs.Server;
 
 
 namespace KillCounter
@@ -15,18 +16,17 @@ namespace KillCounter
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
-        public override Version Version => new Version(1, 2, 6);
+        public override Version Version => new Version(2, 0, 0);
         public static Dictionary<Player, int> killsss = new Dictionary<Player, int>();
         private Dictionary<Player, CoroutineHandle> spectatorCoroutines = new Dictionary<Player, CoroutineHandle>();
         private CoroutineHandle hintCoroutine;
 
         public override void OnEnabled()
         {
-            base.OnEnabled();
             Instance = this;
-            Log.Warn("This version of KillCounter is a newer less tested release please report any and all bugs to walter.jr. on discord or the issues tab on github.");
             Exiled.Events.Handlers.Player.Died += OnPlayerDeath;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpecedRole;
+            Exiled.Events.Handlers.Server.RoundEnded += CleanUpDictionaries;
         }
 
 
@@ -36,6 +36,7 @@ namespace KillCounter
             Instance = null;
             Exiled.Events.Handlers.Player.Died -= OnPlayerDeath;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer -= OnChangingSpecedRole;
+            Exiled.Events.Handlers.Server.RoundEnded -= CleanUpDictionaries;
             Timing.KillCoroutines(hintCoroutine);
         }
 
@@ -44,6 +45,18 @@ namespace KillCounter
         {
             if (ev.Attacker != null && ev.Player != null)
             {
+                if (Config.CountKillsAndDeathsBeforeRoundStarts == false && !Round.IsStarted)
+                {
+                    return;
+                }
+                if (Config.CountKillsAndDeathsAfterRoundEnds == false && !Round.IsEnded)
+                {
+                    return;
+                }
+                if (Config.CountKillsAndDeathsAfterRoundEnds == false && ev.Attacker.Role.Team == ev.Player.Role.Team)
+                {
+                    return;
+                }
                 if (!ev.Attacker.DoNotTrack)
                 {
                     if (!ev.Player.DoNotTrack)
@@ -173,59 +186,74 @@ namespace KillCounter
 
         private void UpdateKillCount(Player player, RoleTypeId DeadPlayerOldRole)
         {
-            if (!player.DoNotTrack)
+            using (var db = new LiteDatabase("kill_counter.db"))
             {
-                using (var db = new LiteDatabase("kill_counter.db"))
-                {
-                    var collection = db.GetCollection<KillCount>("kill_counts");
-                    var killCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
+                var collection = db.GetCollection<KillCount>("kill_counts");
+                var killCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
 
-                    if (killCount != null)
+                if (killCount != null)
+                {
+                    killCount.Kills++;
+                    killCount.PlayerName = player.Nickname; 
+                    if (player.Role.Team == Team.SCPs)
                     {
-                        killCount.Kills++;
-                        collection.Update(killCount);
-                        if(player.Role.Team == Team.SCPs)
-                        {
-                            killCount.ScpKills++;
-                            collection.Update(killCount);
-                        }
-                        if(!DeadPlayerOldRole.IsHuman())
-                        {
-                            killCount.KilledScps++;
-                            collection.Update(killCount);
-                        }
+                        killCount.ScpKills++;
                     }
-                    else
+                    if (!DeadPlayerOldRole.IsHuman())
                     {
-                        killCount = new KillCount { PlayerId = player.UserId, Kills = 1 };
-                        collection.Insert(killCount);
+                        killCount.KilledScps++;
                     }
+                    if (player.DoNotTrack && !killCount.DNT)
+                    {
+                        killCount.DNT = true;
+                    }
+                    collection.Update(killCount);
+                }
+                else
+                {
+                    killCount = new KillCount
+                    {
+                        PlayerId = player.UserId,
+                        PlayerName = player.Nickname,  
+                        Kills = 1,
+                        ScpKills = player.Role.Team == Team.SCPs ? 1 : 0,
+                        KilledScps = !DeadPlayerOldRole.IsHuman() ? 1 : 0,
+                        DNT = player.DoNotTrack
+                    };
+                    collection.Insert(killCount);
                 }
             }
         }
 
         private void UpdateDeathCount(Player player)
         {
-            if(!player.DoNotTrack)
+            using (var db = new LiteDatabase("kill_counter.db"))
             {
-                using (var db = new LiteDatabase("kill_counter.db"))
-                {
-                    var collection = db.GetCollection<DeathCount>("death_counts");
-                    var deathCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
+                var collection = db.GetCollection<DeathCount>("death_counts");
+                var deathCount = collection.FindOne(Query.EQ("PlayerId", player.UserId));
 
-                    if (deathCount != null)
+                if (deathCount != null)
+                {
+                    deathCount.Deaths++;
+                    deathCount.PlayerName = player.Nickname;  
+                    if (player.DoNotTrack) deathCount.DNT = true;
+                    collection.Update(deathCount);
+                }
+                else
+                {
+                    deathCount = new DeathCount
                     {
-                        deathCount.Deaths++;
-                        collection.Update(deathCount);
-                    }
-                    else
-                    {
-                        deathCount = new DeathCount { PlayerId = player.UserId, Deaths = 1 };
-                        collection.Insert(deathCount);
-                    }
+                        PlayerId = player.UserId,
+                        PlayerName = player.Nickname,  
+                        Deaths = 1,
+                        DNT = player.DoNotTrack
+                    };
+                    collection.Insert(deathCount);
                 }
             }
         }
+
+
 
         private IEnumerator<float> DNTSpectatorHintCoroutine(string playerName)
         {
@@ -250,17 +278,21 @@ namespace KillCounter
         public class KillCount
         {
             public int Id { get; set; }
-            public string PlayerId { get; set; } 
+            public string PlayerId { get; set; }
+            public string PlayerName { get; set; }
             public int Kills { get; set; }
             public int ScpKills { get; set; }
             public int KilledScps { get; set; }
+            public bool DNT {  get; set; }
         }
 
         public class DeathCount
         {
             public int Id { get; set; }
-            public string PlayerId { get; set; } 
+            public string PlayerId { get; set; }
+            public string PlayerName { get; set; }
             public int Deaths { get; set; }
+            public bool DNT { get; set; }
         }
     }
 }

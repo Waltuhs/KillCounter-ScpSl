@@ -15,7 +15,7 @@ namespace KillCounter
         [Description("kill message customization. {kills} = amount of kills")]
         public string km { get; set; } = "you have {kills} kills!";
 
-        [Description("first kill message. {kills} = amount of kills (more for grammar e.g you have 1 kills. instead you have 1 kill)")]
+        [Description("first kill message customization. {kills} = amount of kills (more for grammar e.g you have 1 kills. instead you have 1 kill)")]
         public string firstkm { get; set; } = "You have {kills} kill!";
 
         [Description("Kill message hint time (int)")]
@@ -26,6 +26,14 @@ namespace KillCounter
 
         [Description("is the spectator kill count hint enabled?")]
         public bool SpecHintIsEnabled { get; set; } = true;
+
+        [Description("Are kills & deaths counted before round started?")]
+        public bool CountKillsAndDeathsBeforeRoundStarts { get; set; } = true;
+
+        [Description("Are kills & deaths counted on round end")]
+        public bool CountKillsAndDeathsAfterRoundEnds { get; set; } = true;
+
+        [Description("are friendly fire kills counted?")]
+        public bool CountKillsAndDeathsIfFriendlyFire { get; set; } = true;
     }
 }
-
