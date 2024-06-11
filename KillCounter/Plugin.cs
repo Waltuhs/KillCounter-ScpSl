@@ -49,7 +49,7 @@ namespace KillCounter
                 {
                     return;
                 }
-                if (Config.CountKillsAndDeathsAfterRoundEnds == false && !Round.IsEnded)
+                if (Config.CountKillsAndDeathsAfterRoundEnds == false && Round.IsEnded)
                 {
                     return;
                 }
