@@ -16,7 +16,7 @@ namespace KillCounter
         public override string Author => "sexy waltuh";
         public override string Name => "kill count";
         public override string Prefix => "KillCounter";
-        public override Version Version => new Version(2, 0, 0);
+        public override Version Version => new Version(2, 1, 0);
         public static Dictionary<Player, int> killsss = new Dictionary<Player, int>();
         private Dictionary<Player, CoroutineHandle> spectatorCoroutines = new Dictionary<Player, CoroutineHandle>();
         private CoroutineHandle hintCoroutine;
@@ -53,7 +53,7 @@ namespace KillCounter
                 {
                     return;
                 }
-                if (Config.CountKillsAndDeathsAfterRoundEnds == false && ev.Attacker.Role.Team == ev.Player.Role.Team)
+                if (!Config.CountKillsAndDeathsIfFriendlyFire == false && ev.Attacker.Role.Team == ev.Player.Role.Team)
                 {
                     return;
                 }
@@ -69,6 +69,8 @@ namespace KillCounter
                             ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
                             UpdateDeathCount(ev.Player);
                             UpdateKillCount(ev.Attacker, ev.TargetOldRole);
+                            UpdateKD(ev.Player);
+                            UpdateKD(ev.Attacker);
                         }
                         else
                         {
@@ -77,6 +79,8 @@ namespace KillCounter
                             ev.Attacker.ShowHint(killMessage, Config.kmTime);
                             UpdateDeathCount(ev.Player);
                             UpdateKillCount(ev.Attacker, ev.TargetOldRole);
+                            UpdateKD(ev.Player);
+                            UpdateKD(ev.Attacker);
                         }
                     }
                     else
@@ -88,6 +92,7 @@ namespace KillCounter
                             string firstkillMessage = Config.firstkm.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(firstkillMessage, Config.kmTime);
                             UpdateKillCount(ev.Attacker, ev.TargetOldRole);
+                            UpdateKD(ev.Attacker);
                         }
                         else
                         {
@@ -95,12 +100,14 @@ namespace KillCounter
                             string killMessage = Config.km.Replace("{kills}", killsss[ev.Attacker].ToString());
                             ev.Attacker.ShowHint(killMessage, Config.kmTime);
                             UpdateKillCount(ev.Attacker, ev.TargetOldRole);
+                            UpdateKD(ev.Attacker);
                         }
                     }
                 }
                 else
                 {
                     UpdateDeathCount(ev.Player);
+                    UpdateKD(ev.Player);
                 }
             }
         }
@@ -253,7 +260,39 @@ namespace KillCounter
             }
         }
 
+        private void UpdateKD(Player player)
+        {
+            using (var db = new LiteDatabase("kill_counter.db"))
+            {
+                var killCollection = db.GetCollection<KillCount>("kill_counts");
+                var deathCollection = db.GetCollection<DeathCount>("death_counts");
 
+                var killCount = killCollection.FindOne(Query.EQ("PlayerId", player.UserId));
+                int kills = killCount != null ? killCount.Kills : 0;
+
+                var deathCount = deathCollection.FindOne(Query.EQ("PlayerId", player.UserId));
+                int deaths = deathCount != null ? deathCount.Deaths : 0;
+
+                double ratio = deaths != 0 ? (double)kills / deaths : kills;
+                if (killCount != null)
+                {
+                    killCount.KD = ratio;
+                    killCount.PlayerName = player.Nickname;
+                    killCollection.Update(killCount);
+                }
+                else
+                {
+                    killCount = new KillCount
+                    {
+                        PlayerId = player.UserId,
+                        KD = ratio,
+                        PlayerName = player.Nickname,
+                        DNT = player.DoNotTrack
+                    };
+                    killCollection.Insert(killCount);
+                }
+            }
+        }
 
         private IEnumerator<float> DNTSpectatorHintCoroutine(string playerName)
         {
