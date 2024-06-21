@@ -22,6 +22,7 @@ namespace KillCounter
             RegisterCommand(new LeaderboardDeathsCommand());
             RegisterCommand(new LeaderboardScpKillsCommand());
             RegisterCommand(new LeaderboardKillsAsScpCommand());
+            RegisterCommand(new LeaderboardKDCommand());
         }
 
         protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)
@@ -148,6 +149,35 @@ namespace KillCounter
                                    .Replace("%rank%", (i + 1).ToString())
                                    .Replace("%player%", kc.PlayerName)
                                    .Replace("%killsasscp%", kc.ScpKills.ToString())));
+            }
+            return true;
+        }
+    }
+
+    public class LeaderboardKDCommand : ICommand
+    {
+        public string Command { get; } = Plugin.Instance.Translation.KDsubcmdname;
+        public string[] Aliases { get; } = Array.Empty<string>();
+        public string Description { get; } = Plugin.Instance.Translation.KDsubcmddesc;
+
+        public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
+        {
+            using (var db = new LiteDatabase("kill_counter.db"))
+            {
+                var killCollection = db.GetCollection<KillCount>("kill_counts");
+
+                var killsLeaderboard = killCollection.FindAll()
+                    .Where(kc => !kc.DNT && !string.IsNullOrWhiteSpace(kc.PlayerName))
+                    .OrderByDescending(kc => kc.KD)
+                    .Take(10)
+                    .ToList();
+
+                response = Plugin.Instance.Translation.LeaderboardKDHeader.Replace("%n%", "\n") +
+                           string.Join("\n", killsLeaderboard.Select((kc, i) =>
+                               Plugin.Instance.Translation.LeaderboardKDEntry
+                                   .Replace("%rank%", (i + 1).ToString())
+                                   .Replace("%player%", kc.PlayerName)
+                                   .Replace("%kd%", kc.KD.ToString())));
             }
             return true;
         }
