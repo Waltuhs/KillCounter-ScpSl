@@ -320,6 +320,7 @@ namespace KillCounter
             public string PlayerId { get; set; }
             public string PlayerName { get; set; }
             public int Kills { get; set; }
+            public double KD { get; set; }
             public int ScpKills { get; set; }
             public int KilledScps { get; set; }
             public bool DNT {  get; set; }
